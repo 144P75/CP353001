@@ -1,0 +1,5 @@
+build/
+editor
+tests/hello
+*.swp
+*.tmp
