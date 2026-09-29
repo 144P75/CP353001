@@ -6,13 +6,17 @@
 #include "editor.h"
 
 #define OBS(s) ob_add(s, sizeof(s) - 1)
-#define TAB_STOP 4     
+#define TAB_STOP 4     // a tab jumps to the next multiple of 4 columns
 
-static char *ob;       
+static char *ob;       // output buffer: whole frame, sent with one write()
 static int oblen;
-static int rx;         
+static int rx;         // cursor column on screen (tabs are wider than 1)
 
 static void ob_add(const char *s, int len) {
+#ifdef SLOW_RENDER                     // experiment 3: one write() per piece
+    write(STDOUT_FILENO, s, len);
+    return;
+#endif
     ob = realloc(ob, oblen + len);
     memcpy(ob + oblen, s, len);
     oblen += len;
@@ -60,7 +64,7 @@ static void draw_rows(void) {
         } else {
             OBS("~");
         }
-        OBS("\x1b[K\r\n");                      
+        OBS("\x1b[K\r\n");                      // clear rest of line
     }
 }
 
@@ -72,7 +76,7 @@ static void draw_status(void) {
                      E.nrows, E.cy + 1, rx + 1);
     if (n > (int)sizeof st - 1) n = sizeof st - 1;
     if (n > E.cols) n = E.cols;
-    OBS("\x1b[7m");                            
+    OBS("\x1b[7m");                             // inverted colors
     ob_add(st, n);
     while (n++ < E.cols) OBS(" ");
     OBS("\x1b[m\r\n\x1b[K");
@@ -83,13 +87,13 @@ static void draw_status(void) {
 void refresh_screen(void) {
     scroll();
     oblen = 0;
-    OBS("\x1b[?25l\x1b[H");                    
+    OBS("\x1b[?25l\x1b[H");                     // hide cursor, go home
     draw_rows();
     draw_status();
     char cur[32];
     int n = snprintf(cur, sizeof cur, "\x1b[%d;%dH",
                      E.cy - E.rowoff + 1, rx - E.coloff + 1);
     ob_add(cur, n);
-    OBS("\x1b[?25h");                           
-    write(STDOUT_FILENO, ob, oblen);            
+    OBS("\x1b[?25h");                           // show cursor
+    if (oblen > 0) write(STDOUT_FILENO, ob, oblen);  // one write() per frame
 }

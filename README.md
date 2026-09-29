@@ -36,6 +36,7 @@ make clean                # ลบไฟล์ที่ compile แล้ว
 ```
 
 ## วิธีทดสอบแต่ละฟีเจอร์ ดูที่ [TESTING.md](TESTING.md)
+## ผลการทดลองด้วย strace และการเปรียบเทียบ ดูที่ [experiments/README.md](experiments/README.md)
 
 ## ปุ่มลัด
 

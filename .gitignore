@@ -3,3 +3,9 @@ editor
 tests/hello
 *.swp
 *.tmp
+experiments/data/
+experiments/results/
+experiments/readbuf
+experiments/writemode
+experiments/editor_slow
+experiments/__pycache__/
